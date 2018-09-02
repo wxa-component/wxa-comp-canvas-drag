@@ -1,0 +1,8 @@
+<!--components/canvas-drag/index.wxml-->
+<canvas canvas-id='canvas-label' 
+disable-scroll="true"
+bindtouchstart="start"
+bindtouchmove="move"
+bindtouchend="end"
+ style='width: 750rpx; height: 750rpx; background: #eee;'></canvas>
+<button bindtap="onAddImage">添加图片</button>
