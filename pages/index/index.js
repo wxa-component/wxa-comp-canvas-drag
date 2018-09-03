@@ -4,18 +4,42 @@ const app = getApp()
 
 Page({
     data: {
+        graph: {},
+        bg: '../../assets/images/test.jpg',
     },
 
-    onLoad() {
-      const ctx = wx.createCanvasContext('canvas-label', this);
+    onAddTest() {
+        this.setData({
+            graph: {
+                w: 120,
+                h: 120,
+                type: 'image',
+                url: '../../assets/images/test.jpg',
+            }
+        });
     },
 
-    onPullDownRefresh() {
-        setTimeout(() => wx.stopPullDownRefresh(), 1000);
-    },
-    onGoto() {
-        wx.navigateTo({
-            url: '/pages/home/home',
+    onAddImage() {
+        wx.chooseImage({
+            success: (res) => {
+                this.setData({
+                    graph: {
+                        w: 200,
+                        h: 200,
+                        type: 'image',
+                        url: res.tempFilePaths[0],
+                    }
+                });
+            }
         })
-    }
+    },
+
+    onAddText() {
+        this.setData({
+            graph: {
+                type: 'text',
+                text: 'helloworld',
+            }
+        });
+    },
 })
