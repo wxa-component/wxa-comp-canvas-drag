@@ -1,4 +1,4 @@
 <canvas-drag graph="{{ graph }}" bg="{{ bg }}" width="750" height="950"></canvas-drag>
 <button bindtap="onAddImage">添加图片</button>
-<button bindtap="onAddTest">onAddTest</button>
-<button bindtap="onAddText">onAddText</button>
+<button bindtap="onAddTest">添加测试图片</button>
+<button bindtap="onAddText">添加文字</button>
