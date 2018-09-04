@@ -10,7 +10,7 @@ const dragGraph = function ({ x, y, w, h, type, text, fontSize = 20, url }, canv
         this.y = y + halfHeight;
     } else {
         this.x = x;
-        this.y = y;   
+        this.y = y;
     }
     this.w = w;
     this.h = h;
@@ -297,29 +297,29 @@ Component({
             const { x, y } = e.touches[0];
             this.tempGraphArr = [];
             this.drawArr && this.drawArr.forEach((item, index) => {
+                item.selected = false;
                 const action = item.isInGraph(x, y);
                 if (action) {
                     if (action === 'del') {
                         this.drawArr.splice(index, 1);
                         this.ctx.clearRect(0, 0, this.toPx(this.data.width), this.toPx(this.data.height));
                         this.ctx.draw();
-                        this.draw();
                     } else if (action === 'transform' || action === 'move') {
-                        item.selected = true;
                         item.action = action;
                         this.tempGraphArr.push(item);
-                        const lastIndex = this.tempGraphArr.length - 1;
                         // 保存点击时的坐标
                         this.currentTouch = { x, y };
-                        // 保存点击时元素的信息
-                        this.currentGraph = Object.assign({}, this.tempGraphArr[lastIndex]);
-                        this.draw();
+
                     }
-                } else {
-                    item.selected = false;
-                    this.draw();
                 }
             });
+            // 保存点击时元素的信息
+            if (this.tempGraphArr.length > 0) {
+                const lastIndex = this.tempGraphArr.length - 1;
+                this.tempGraphArr[lastIndex].selected = true;
+                this.currentGraph = Object.assign({}, this.tempGraphArr[lastIndex]);
+            }
+            this.draw();
         },
         move(e) {
             const { x, y } = e.touches[0];
