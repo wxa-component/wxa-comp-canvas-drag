@@ -1,11 +1,9 @@
 //index.js
-//获取应用实例
-const app = getApp()
+import CanvasDrag from '../../components/canvas-drag/canvas-drag';
 
 Page({
     data: {
         graph: {},
-        bg: '../../assets/images/test.jpg',
     },
 
     onAddTest() {
@@ -41,5 +39,18 @@ Page({
                 text: 'helloworld',
             }
         });
+    },
+
+    onExport() {
+        CanvasDrag.export()
+            .then((filePath) => {
+                console.log(filePath);
+                wx.previewImage({
+                    urls: [filePath]
+                })
+            })
+            .catch((e) => {
+                console.error(e);
+            })
     },
 })
