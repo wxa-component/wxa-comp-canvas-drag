@@ -108,13 +108,13 @@ dragGraph.prototype = {
         const moveY = this.type === 'text' ? this.y - (selectH / 2) : this.y;
 
         // 测试使用
-        this.ctx.setLineWidth(1);
-        this.ctx.setStrokeStyle('red');
-        this.ctx.strokeRect(transformDelX, transformDelY, delW, delH);
+        // this.ctx.setLineWidth(1);
+        // this.ctx.setStrokeStyle('red');
+        // this.ctx.strokeRect(transformDelX, transformDelY, delW, delH);
 
-        this.ctx.setLineWidth(1);
-        this.ctx.setStrokeStyle('black');
-        this.ctx.strokeRect(transformScaleX, transformScaleY, scaleW, scaleH);
+        // this.ctx.setLineWidth(1);
+        // this.ctx.setStrokeStyle('black');
+        // this.ctx.strokeRect(transformScaleX, transformScaleY, scaleW, scaleH);
 
         if (x - transformScaleX >= 0 && y - transformScaleY >= 0 &&
             transformScaleX + scaleW - x >= 0 && transformScaleY + scaleH - y >= 0) {
