@@ -201,10 +201,6 @@ dragGraph.prototype = {
             this.w = w <= this.MIN_WIDTH ? this.MIN_WIDTH : w;
             this.h = h <= this.MIN_WIDTH ? this.MIN_WIDTH : h;
 
-            this.ctx.arc(centerX, centerY, lineB, 0, 2 * Math.PI)
-            this.ctx.setFillStyle('#cccccc')
-            this.ctx.fill()
-
             if (w > this.MIN_WIDTH && h > this.MIN_WIDTH) {
                 // 放大 或 缩小
                 this.x = currentGraph.x - (lineB - lineA) / 2;
