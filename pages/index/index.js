@@ -6,6 +6,9 @@ Page({
         graph: {},
     },
 
+    /**
+     * 添加测试图片
+     */
     onAddTest() {
         this.setData({
             graph: {
@@ -17,6 +20,9 @@ Page({
         });
     },
 
+    /**
+     * 添加图片
+     */
     onAddImage() {
         wx.chooseImage({
             success: (res) => {
@@ -32,6 +38,9 @@ Page({
         })
     },
 
+    /**
+     * 添加文本
+     */
     onAddText() {
         this.setData({
             graph: {
@@ -41,6 +50,9 @@ Page({
         });
     },
 
+    /**
+     * 导出图片
+     */
     onExport() {
         CanvasDrag.export()
             .then((filePath) => {
@@ -53,4 +65,11 @@ Page({
                 console.error(e);
             })
     },
+
+    /**
+     * 改变颜色
+     */
+    onChangeColor() {
+        CanvasDrag.changColor('blue');
+    }
 })

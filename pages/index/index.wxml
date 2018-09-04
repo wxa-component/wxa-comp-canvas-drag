@@ -1,5 +1,6 @@
-<canvas-drag id="canvas-drag" graph="{{ graph }}" width="750" height="750"></canvas-drag>
+<canvas-drag id="canvas-drag" graph="{{graph}}" width="700" height="750"></canvas-drag>
 <button bindtap="onAddImage">添加图片</button>
 <button bindtap="onAddTest">添加测试图片</button>
 <button bindtap="onAddText">添加文字</button>
 <button bindtap="onExport">导出图片</button>
+<button bindtap="onChangeColor">改变文字颜色</button>

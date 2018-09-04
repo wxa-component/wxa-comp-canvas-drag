@@ -1,5 +1,5 @@
 // components/canvas-drag/index.js
-const dragGraph = function ({ x, y, w, h, type, text, fontSize = 20, url }, canvas) {
+const dragGraph = function ({ x, y, w, h, type, text, fontSize = 20, color = 'red', url }, canvas, factor) {
     if (type === 'text') {
         canvas.setFontSize(fontSize);
         const textWidth = canvas.measureText(this.text).width;
@@ -17,10 +17,12 @@ const dragGraph = function ({ x, y, w, h, type, text, fontSize = 20, url }, canv
     this.fileUrl = url;
     this.text = text;
     this.fontSize = fontSize;
+    this.color = color;
     this.ctx = canvas;
     this.rotate = 0;
     this.type = type;
     this.selected = true;
+    this.factor = factor;
     this.MIN_WIDTH = 50;
     this.MIN_FONTSIZE = 10;
 }
@@ -31,12 +33,15 @@ dragGraph.prototype = {
      */
     paint() {
         this.ctx.save();
+        // TODO 剪切
+        // this._drawRadiusRect(0, 0, 700, 750, 300);
+        // this.ctx.clip();
         // 由于measureText获取文字宽度依赖于样式，所以如果是文字元素需要先设置样式
         if (this.type === 'text') {
             this.ctx.setFontSize(this.fontSize);
             this.ctx.setTextBaseline('middle');
             this.ctx.setTextAlign('center');
-            this.ctx.setFillStyle('red');
+            this.ctx.setFillStyle(this.color);
         }
         // 选择区域的中心点
         this.centerX = this.type === 'text' ? this.x : this.x + (this.w / 2);
@@ -211,6 +216,25 @@ dragGraph.prototype = {
             this.fontSize = fontSize <= this.MIN_FONTSIZE ? this.MIN_FONTSIZE : fontSize;
         }
     },
+    /**
+     * 画圆角矩形
+     */
+    _drawRadiusRect(x, y, w, h, r) {
+        const br = r / 2;
+        this.ctx.beginPath();
+        this.ctx.moveTo(this.toPx(x + br), this.toPx(y));    // 移动到左上角的点
+        this.ctx.lineTo(this.toPx(x + w - br), this.toPx(y));
+        this.ctx.arcTo(this.toPx(x + w), this.toPx(y), this.toPx(x + w), this.toPx(y + br), this.toPx(br));
+        this.ctx.lineTo(this.toPx(x + w), this.toPx(y + h - br));
+        this.ctx.arcTo(this.toPx(x + w), this.toPx(y + h), this.toPx(x + w - br), this.toPx(y + h), this.toPx(br));
+        this.ctx.lineTo(this.toPx(x + br), this.toPx(y + h));
+        this.ctx.arcTo(this.toPx(x), this.toPx(y + h), this.toPx(x), this.toPx(y + h - br), this.toPx(br));
+        this.ctx.lineTo(this.toPx(x), this.toPx(y + br));
+        this.ctx.arcTo(this.toPx(x), this.toPx(y), this.toPx(x + br), this.toPx(y), this.toPx(br));
+    },
+    toPx(rpx) {
+        return rpx * this.factor;
+    },
 }
 Component({
     /**
@@ -271,7 +295,7 @@ Component({
             this.drawArr.push(new dragGraph(Object.assign({
                 x: 30,
                 y: 30,
-            }, n), this.ctx));
+            }, n), this.ctx, this.factor));
             this.draw();
         },
         draw() {
@@ -351,6 +375,13 @@ Component({
                     }, this);
                 });
             })
+        },
+        changColor(color) {
+            const selected = this.drawArr.filter((item) => item.selected);
+            if (selected.length > 0) {
+                selected[0].color = color;
+            }
+            this.draw();
         }
     }
 })
