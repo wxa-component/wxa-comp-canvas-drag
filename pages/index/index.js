@@ -67,9 +67,24 @@ Page({
     },
 
     /**
-     * 改变颜色
+     * 改变文字颜色
      */
     onChangeColor() {
-        CanvasDrag.changColor('blue');
-    }
+        CanvasDrag.changFontColor('blue');
+    },
+
+    /**
+     * 改变背景颜色
+     */
+    onChangeBgColor() {
+        CanvasDrag.changeBgColor('yellow');
+    },
+
+    /**
+     * 改变背景照片
+     */
+    onChangeBgImage() {
+        CanvasDrag.changeBgImage('../../assets/images/test.jpg');
+    },
+
 })

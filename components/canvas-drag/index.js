@@ -300,7 +300,7 @@ Component({
         },
         draw() {
             if (this.data.bgImage !== '') {
-                this.ctx.drawImage(this.data.bg, 0, 0, this.toPx(this.data.width), this.toPx(this.data.height));
+                this.ctx.drawImage(this.data.bgImage, 0, 0, this.toPx(this.data.width), this.toPx(this.data.height));
             }
             if (this.data.bgColor !== '') {
                 this.ctx.save();
@@ -381,6 +381,16 @@ Component({
             if (selected.length > 0) {
                 selected[0].color = color;
             }
+            this.draw();
+        },
+        changeBgColor(color) {
+            this.data.bgImage = '';
+            this.data.bgColor = color;
+            this.draw();
+        },
+        changeBgImage(url) {
+            this.data.bgColor = '';
+            this.data.bgImage = url;
             this.draw();
         }
     }

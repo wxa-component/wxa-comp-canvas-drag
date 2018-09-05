@@ -4,3 +4,5 @@
 <button bindtap="onAddText">添加文字</button>
 <button bindtap="onExport">导出图片</button>
 <button bindtap="onChangeColor">改变文字颜色</button>
+<button bindtap="onChangeBgColor">改变背景颜色</button>
+<button bindtap="onChangeBgImage">改变背景照片</button>
