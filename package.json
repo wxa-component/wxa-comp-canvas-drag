@@ -1,0 +1,26 @@
+{
+  "name": "wxa-comp-canvas-drag",
+  "version": "0.0.1",
+  "description": "canvas拖拽组件",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jasondu/wx-comp-canvas-drag.git"
+  },
+  "keywords": [
+    "wxapp"
+  ],
+  "author": "jasondu",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jasondu/wx-comp-canvas-drag/issues"
+  },
+  "homepage": "https://github.com/jasondu/wx-comp-canvas-drag#readme",
+  "files": [
+    "components"
+  ],
+  "miniprogram": "components"
+}
