@@ -8,7 +8,7 @@ wxa-comp-canvas-drag是一个可以添加多种元素（图片和文字）的画
 
 ## 组件效果
 
-![](/Users/simon/project/wx-comp-canvas-drag/demo.gif)
+<img width="300" src="https://github.com/jasondu/wx-comp-canvas-drag/blob/master/demo.gif"></img>
 
 ## 使用之前
 
