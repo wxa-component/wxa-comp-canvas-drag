@@ -2,6 +2,8 @@
 
 小程序组件-canvas拖拽画板
 
+[![npm-version](https://img.shields.io/npm/v/wxa-comp-canvas-drag.svg)](https://www.npmjs.com/package/wxa-comp-canvas-drag)
+
 ## 概述
 
 wxa-comp-canvas-drag是一个可以添加多种元素（图片和文字）的画板，用户可以移动拖拽元素组成自己喜欢的样子并导出图片。
