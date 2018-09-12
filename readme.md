@@ -3,7 +3,7 @@
 小程序组件-canvas拖拽画板
 
 [![npm-version](https://img.shields.io/npm/v/wxa-comp-canvas-drag.svg)](https://www.npmjs.com/package/wxa-comp-canvas-drag)
-[![npm-version](https://img.shields.io/npm/dm/wxa-plugin-canvas.svg?style=flat)](https://www.npmjs.com/package/wxa-comp-canvas-drag)
+[![npm-version](https://img.shields.io/npm/dm/wxa-comp-canvas-drag.svg?style=flat)](https://www.npmjs.com/package/wxa-comp-canvas-drag)
 
 ## 概述
 
