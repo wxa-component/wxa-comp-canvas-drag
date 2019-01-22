@@ -87,4 +87,22 @@ Page({
         CanvasDrag.changeBgImage('../../assets/images/test.jpg');
     },
 
-})
+    /**
+     * 导出当前画布为模板
+     */
+    onExportJSON(){
+        CanvasDrag.exportJson()
+          .then((imgArr) => {
+            console.log(JSON.stringify(imgArr));
+        })
+          .catch((e) => {
+              console.error(e);
+          });
+    },
+
+    onImport(){
+        const temp_theme = [{"type":"image","url":"../../assets/images/test.jpg","y":103,"x":91,"w":120,"h":120,"rotate":0,"sourceId":null},{"type":"text","text":"helloworld","color":"blue","fontSize":20,"y":243,"x":97,"rotate":0}];
+
+        CanvasDrag.initByArr(temp_theme);
+    }
+});
