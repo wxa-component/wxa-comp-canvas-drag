@@ -11,18 +11,18 @@ function CanvasDrag(options = {}) {
     const pages = getCurrentPages();
     const ctx = pages[pages.length - 1];
 
-    const canvasDrag = ctx.selectComponent(options.selector);
+  const canvasDrag = ctx.selectComponent(options.selector);
     delete options.selector;
 
-    return canvasDrag;
+  return canvasDrag;
 }
 
 CanvasDrag.export = () => {
-    const canvasDrag = CanvasDrag();
-    if (!canvasDrag) {
+  const canvasDrag = CanvasDrag();
+  if (!canvasDrag) {
         console.error('请设置组件的id="canvas-drag"!!!');
     } else {
-        return CanvasDrag().export();
+    return CanvasDrag().export();
     }
 };
 
@@ -69,6 +69,15 @@ CanvasDrag.changeBgImage = (bgImage) => {
     } else {
         return CanvasDrag().changeBgImage(bgImage);
     }
+};
+
+CanvasDrag.clearCanvas = () => {
+  const canvasDrag = CanvasDrag();
+  if (!canvasDrag) {
+    console.error('请设置组件的id="canvas-drag"!!!');
+  } else {
+    return CanvasDrag().clearCanvas();
+  }
 };
 
 export default CanvasDrag;

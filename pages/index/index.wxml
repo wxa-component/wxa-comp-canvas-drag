@@ -8,3 +8,4 @@
 <view class="btn" bindtap="onChangeBgImage">改变背景照片</view>
 <view class="btn" bindtap="onExportJSON">导出模板</view>
 <view class="btn" bindtap="onImport">导入默认模板</view>
+<view class="btn" bindtap="onClearCanvas">清空画布</view>
