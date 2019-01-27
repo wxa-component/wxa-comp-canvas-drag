@@ -425,30 +425,32 @@ Component({
                     if (action === 'del') {
                         lastDelIndex = index;// 标记需要删除的元素
                     }
-          // 本次的操作是 del ，上次已选中，保留选中状态
-          if(item.action === 'del' && item.selected === true){
-            item.selected = true;
-          }else{
-            item.selected = false;
-          }
                 } else {
+                    item.action = false;
                     item.selected = false;
                 }
-
             });
             // 保存点击时元素的信息
             if (this.tempGraphArr.length > 0) {
-                const lastIndex = this.tempGraphArr.length - 1;
-                // 未选中的元素，不执行删除和缩放操作
-                if (lastDelIndex !== null && this.tempGraphArr[lastIndex].selected) {
-                    // 如果需要删除的 Index 是最后一个，执行删除
-                    if (this.drawArr[lastDelIndex].action === 'del') {
-                        this.drawArr.splice(lastDelIndex, 1);
-                        this.ctx.clearRect(0, 0, this.toPx(this.data.width), this.toPx(this.data.height));
+                for (let i = 0; i < this.tempGraphArr.length; i++) {
+                    let lastIndex = this.tempGraphArr.length - 1;
+                    // 对最后一个元素做操作
+                    if (i === lastIndex) {
+                        // 未选中的元素，不执行删除和缩放操作
+                        if (lastDelIndex !== null && this.tempGraphArr[i].selected) {
+                            if (this.drawArr[lastDelIndex].action === 'del') {
+                                this.drawArr.splice(lastDelIndex, 1);
+                                this.ctx.clearRect(0, 0, this.toPx(this.data.width), this.toPx(this.data.height));
+                            }
+                        } else {
+                            this.tempGraphArr[lastIndex].selected = true;
+                            this.currentGraph = Object.assign({}, this.tempGraphArr[lastIndex]);
+                        }
+                    } else {
+                        // 不是最后一个元素，不需要选中，也不记录状态
+                        this.tempGraphArr[i].action = false;
+                        this.tempGraphArr[i].selected = false;
                     }
-                } else {
-                    this.tempGraphArr[lastIndex].selected = true;
-                    this.currentGraph = Object.assign({}, this.tempGraphArr[lastIndex]);
                 }
             }
             this.draw();

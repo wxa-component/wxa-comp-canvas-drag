@@ -11,8 +11,8 @@
 		"newFeature": true
 	},
 	"compileType": "miniprogram",
-	"libVersion": "2.2.4",
-	"appid": "wx637a3fa923864f90",
+	"libVersion": "2.5.1",
+	"appid": "wx9350d33afdf04d45",
 	"projectname": "wxa-comp-canvas-drag",
 	"isGameTourist": false,
 	"condition": {
