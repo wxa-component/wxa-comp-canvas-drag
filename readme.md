@@ -80,6 +80,7 @@ yarn add wxa-comp-canvas-drag --production
 | ---- | ---- | ---- | ---- |
 | export | 无 | Promise对象，成功回调返回图片地址 | 导出画板生成的图片地址 |
 | exportJSON | 无 | Promise对象，成功回调返当前画板配置 | 导出画板布局数据 |
+| clearCanvas | 无 | 无 | 清空画布 |
 | initByArr | exportJSON导出的数据 | 无 | 用配置文件一次渲染多个元素 |
 | changFontColor | color（改变的颜色值） | 无 | 改变选择文本颜色 |
 | changeBgColor  | color（改变的颜色值） | 无 | 改变画板背景颜色 |
