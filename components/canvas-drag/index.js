@@ -425,6 +425,12 @@ Component({
                     if (action === 'del') {
                         lastDelIndex = index;// 标记需要删除的元素
                     }
+          // 本次的操作是 del ，上次已选中，保留选中状态
+          if(item.action === 'del' && item.selected === true){
+            item.selected = true;
+          }else{
+            item.selected = false;
+          }
                 } else {
                     item.selected = false;
                 }
