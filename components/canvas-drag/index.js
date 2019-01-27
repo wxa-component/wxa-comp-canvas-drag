@@ -149,7 +149,7 @@ dragGraph.prototype = {
         const transformScaleY = transformedScaleCenter[1] - scaleH / 2;
 
         // 调试使用，标识可操作区域
-        if(DEBUG_MODE){
+        if (DEBUG_MODE) {
             // 标识删除按钮区域
             this.ctx.setLineWidth(1);
             this.ctx.setStrokeStyle('red');
@@ -416,7 +416,6 @@ Component({
             this.tempGraphArr = [];
             let lastDelIndex = null; // 记录最后一个需要删除的索引
             this.drawArr && this.drawArr.forEach((item, index) => {
-                item.selected = false;
                 const action = item.isInGraph(x, y);
                 if (action) {
                     item.action = action;
@@ -426,20 +425,22 @@ Component({
                     if (action === 'del') {
                         lastDelIndex = index;// 标记需要删除的元素
                     }
+                } else {
+                    item.selected = false;
                 }
+
             });
             // 保存点击时元素的信息
             if (this.tempGraphArr.length > 0) {
                 const lastIndex = this.tempGraphArr.length - 1;
-
                 // 未选中的元素，不执行删除和缩放操作
-                if(this.tempGraphArr[lastIndex].selected === true){
-                    // 如果需要删除的 Index 是最后一个，此时执行删除
-                    if(this.tempGraphArr[lastIndex].action === 'del'){
+                if (lastDelIndex !== null && this.tempGraphArr[lastIndex].selected) {
+                    // 如果需要删除的 Index 是最后一个，执行删除
+                    if (this.drawArr[lastDelIndex].action === 'del') {
                         this.drawArr.splice(lastDelIndex, 1);
                         this.ctx.clearRect(0, 0, this.toPx(this.data.width), this.toPx(this.data.height));
                     }
-                }else{
+                } else {
                     this.tempGraphArr[lastIndex].selected = true;
                     this.currentGraph = Object.assign({}, this.tempGraphArr[lastIndex]);
                 }
