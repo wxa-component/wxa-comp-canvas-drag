@@ -1,31 +1,50 @@
 // components/canvas-drag/index.js
-const dragGraph = function ({ x, y, w, h, type, text, fontSize = 20, color = 'red', url }, canvas, factor) {
+const DELETE_ICON = './icon/close.png'; // 删除按钮
+const DRAG_ICON = './icon/scale.png'; // 缩放按钮
+const STROKE_COLOR = 'red';
+const ROTATE_ENABLED = true;
+
+const DEBUG_MODE = false; // 打开调试后会渲染操作区域边框（无背景时有效）
+const dragGraph = function ({x = 30, y = 30, w, h, type, text, fontSize = 20, color = 'red', url = null, rotate = 0, sourceId = null, selected = true}, canvas, factor) {
     if (type === 'text') {
         canvas.setFontSize(fontSize);
-        const textWidth = canvas.measureText(this.text).width;
+        const textWidth = canvas.measureText(text).width;
         const textHeight = fontSize + 10;
-        const halfWidth = textWidth / 2;
-        const halfHeight = textHeight / 2;
-        this.x = x + halfWidth;
-        this.y = y + halfHeight;
+        this.centerX = x + textWidth / 2;
+        this.centerY = y + textHeight / 2;
+        this.w = textWidth;
+        this.h = textHeight;
     } else {
-        this.x = x;
-        this.y = y;
+        this.centerX = x + w / 2;
+        this.centerY = y + h / 2;
+        this.w = w;
+        this.h = h;
     }
-    this.w = w;
-    this.h = h;
+
+    this.x = x;
+    this.y = y;
+
+    // 4个顶点坐标
+    this.square = [
+        [this.x, this.y],
+        [this.x + this.w, this.y],
+        [this.x + this.w, this.y + this.h],
+        [this.x, this.y + this.h]
+    ];
+
     this.fileUrl = url;
     this.text = text;
     this.fontSize = fontSize;
     this.color = color;
     this.ctx = canvas;
-    this.rotate = 0;
+    this.rotate = rotate;
     this.type = type;
-    this.selected = true;
+    this.selected = selected;
     this.factor = factor;
-    this.MIN_WIDTH = 50;
+    this.sourceId = sourceId;
+    this.MIN_WIDTH = 20;
     this.MIN_FONTSIZE = 10;
-}
+};
 
 dragGraph.prototype = {
     /**
@@ -33,54 +52,77 @@ dragGraph.prototype = {
      */
     paint() {
         this.ctx.save();
-        // TODO 剪切
-        // this._drawRadiusRect(0, 0, 700, 750, 300);
-        // this.ctx.clip();
         // 由于measureText获取文字宽度依赖于样式，所以如果是文字元素需要先设置样式
+        let textWidth = 0;
+        let textHeight = 0;
         if (this.type === 'text') {
             this.ctx.setFontSize(this.fontSize);
             this.ctx.setTextBaseline('middle');
             this.ctx.setTextAlign('center');
             this.ctx.setFillStyle(this.color);
+            textWidth = this.ctx.measureText(this.text).width;
+            textHeight = this.fontSize + 10;
+            // 字体区域中心点不变，左上角位移
+            this.x = this.centerX - textWidth / 2;
+            this.y = this.centerY - textHeight / 2;
         }
-        // 选择区域的中心点
-        this.centerX = this.type === 'text' ? this.x : this.x + (this.w / 2);
-        this.centerY = this.type === 'text' ? this.y : this.y + (this.h / 2);
+
         // 旋转元素
         this.ctx.translate(this.centerX, this.centerY);
         this.ctx.rotate(this.rotate * Math.PI / 180);
         this.ctx.translate(-this.centerX, -this.centerY);
         // 渲染元素
         if (this.type === 'text') {
-            this.ctx.fillText(this.text, this.x, this.y);
+            this.ctx.fillText(this.text, this.centerX, this.centerY);
         } else if (this.type === 'image') {
             this.ctx.drawImage(this.fileUrl, this.x, this.y, this.w, this.h);
         }
         // 如果是选中状态，绘制选择虚线框，和缩放图标、删除图标
         if (this.selected) {
-            this.ctx.setLineDash([10, 10]);
+            this.ctx.setLineDash([2, 5]);
             this.ctx.setLineWidth(2);
-            this.ctx.setStrokeStyle('red');
-            this.ctx.lineDashOffset = 10;
+            this.ctx.setStrokeStyle(STROKE_COLOR);
+            this.ctx.lineDashOffset = 6;
 
             if (this.type === 'text') {
-                const textWidth = this.ctx.measureText(this.text).width;
-                const textHeight = this.fontSize + 10
-                const halfWidth = textWidth / 2;
-                const halfHeight = textHeight / 2;
-                const textX = this.x - halfWidth;
-                const textY = this.y - halfHeight;
-                this.ctx.strokeRect(textX, textY, textWidth, textHeight);
-                this.ctx.drawImage('./icon/close.png', textX - 15, textY - 15, 30, 30);
-                this.ctx.drawImage('./icon/scale.png', textX + textWidth - 15, textY + textHeight - 15, 30, 30);
+                this.ctx.strokeRect(this.x, this.y, textWidth, textHeight);
+                this.ctx.drawImage(DELETE_ICON, this.x - 15, this.y - 15, 30, 30);
+                this.ctx.drawImage(DRAG_ICON, this.x + textWidth - 15, this.y + textHeight - 15, 30, 30);
             } else {
                 this.ctx.strokeRect(this.x, this.y, this.w, this.h);
-                this.ctx.drawImage('./icon/close.png', this.x - 15, this.y - 15, 30, 30);
-                this.ctx.drawImage('./icon/scale.png', this.x + this.w - 15, this.y + this.h - 15, 30, 30);
+                this.ctx.drawImage(DELETE_ICON, this.x - 15, this.y - 15, 30, 30);
+                this.ctx.drawImage(DRAG_ICON, this.x + this.w - 15, this.y + this.h - 15, 30, 30);
             }
         }
-
         this.ctx.restore();
+    },
+    /**
+     * 给矩形描边
+     * @private
+     */
+    _drawBorder() {
+        let p = this.square;
+        let ctx = this.ctx;
+        this.ctx.save();
+        this.ctx.beginPath();
+        ctx.setStrokeStyle('orange');
+        this._draw_line(this.ctx, p[0], p[1]);
+        this._draw_line(this.ctx, p[1], p[2]);
+        this._draw_line(this.ctx, p[2], p[3]);
+        this._draw_line(this.ctx, p[3], p[0]);
+        ctx.restore();
+    },
+    /**
+     * 画一条线
+     * @param ctx
+     * @param a
+     * @param b
+     * @private
+     */
+    _draw_line(ctx, a, b) {
+        ctx.moveTo(a[0], a[1]);
+        ctx.lineTo(b[0], b[1]);
+        ctx.stroke();
     },
     /**
      * 判断点击的坐标落在哪个区域
@@ -88,38 +130,37 @@ dragGraph.prototype = {
      * @param {*} y 点击的坐标
      */
     isInGraph(x, y) {
-        const selectW = this.type === 'text' ? this.ctx.measureText(this.text).width : this.w;
-        const selectH = this.type === 'text' ? this.fontSize + 10 : this.h;
-
         // 删除区域左上角的坐标和区域的高度宽度
         const delW = 30;
         const delH = 30;
-        const delX = this.type === 'text' ? this.x - (selectW / 2) : this.x;
-        const delY = this.type === 'text' ? this.y - (selectH / 2) : this.y;
+
         // 旋转后的删除区域坐标
-        const transformDelX = this._getTransform(delX, delY, this.rotate - this._getAngle(this.centerX, this.centerY, delX, delY)).x - (delW / 2);
-        const transformDelY = this._getTransform(delX, delY, this.rotate - this._getAngle(this.centerX, this.centerY, delX, delY)).y - (delH / 2);
+        const transformedDelCenter = this._rotatePoint(this.x, this.y, this.centerX, this.centerY, this.rotate);
+        const transformDelX = transformedDelCenter[0] - delW / 2;
+        const transformDelY = transformedDelCenter[1] - delH / 2;
 
         // 变换区域左上角的坐标和区域的高度宽度
         const scaleW = 30;
         const scaleH = 30;
-        const scaleX = this.type === 'text' ? this.x + (selectW / 2) : this.x + selectW;
-        const scaleY = this.type === 'text' ? this.y + (selectH / 2) : this.y + selectH;
+        const transformedScaleCenter = this._rotatePoint(this.x + this.w, this.y + this.h, this.centerX, this.centerY, this.rotate);
+
         // 旋转后的变换区域坐标
-        const transformScaleX = this._getTransform(scaleX, scaleY, this.rotate + this._getAngle(this.centerX, this.centerY, scaleX, scaleY)).x - (scaleW / 2);
-        const transformScaleY = this._getTransform(scaleX, scaleY, this.rotate + this._getAngle(this.centerX, this.centerY, scaleX, scaleY)).y - (scaleH / 2);
+        const transformScaleX = transformedScaleCenter[0] - scaleW / 2;
+        const transformScaleY = transformedScaleCenter[1] - scaleH / 2;
 
-        const moveX = this.type === 'text' ? this.x - (selectW / 2) : this.x;
-        const moveY = this.type === 'text' ? this.y - (selectH / 2) : this.y;
-
-        // 测试使用
-        // this.ctx.setLineWidth(1);
-        // this.ctx.setStrokeStyle('red');
-        // this.ctx.strokeRect(transformDelX, transformDelY, delW, delH);
-
-        // this.ctx.setLineWidth(1);
-        // this.ctx.setStrokeStyle('black');
-        // this.ctx.strokeRect(transformScaleX, transformScaleY, scaleW, scaleH);
+        // 调试使用，标识可操作区域
+        if (DEBUG_MODE) {
+            // 标识删除按钮区域
+            this.ctx.setLineWidth(1);
+            this.ctx.setStrokeStyle('red');
+            this.ctx.strokeRect(transformDelX, transformDelY, delW, delH);
+            // 标识旋转/缩放按钮区域
+            this.ctx.setLineWidth(1);
+            this.ctx.setStrokeStyle('black');
+            this.ctx.strokeRect(transformScaleX, transformScaleY, scaleW, scaleH);
+            // 标识移动区域
+            this._drawBorder();
+        }
 
         if (x - transformScaleX >= 0 && y - transformScaleY >= 0 &&
             transformScaleX + scaleW - x >= 0 && transformScaleY + scaleH - y >= 0) {
@@ -129,49 +170,59 @@ dragGraph.prototype = {
             transformDelX + delW - x >= 0 && transformDelY + delH - y >= 0) {
             // 删除区域
             return 'del';
-        } else if (x - moveX >= 0 && y - moveY >= 0 &&
-            moveX + selectW - x >= 0 && moveY + selectH - y >= 0) {
-            // 移动区域
+        } else if (this.insidePolygon(this.square, [x, y])) {
             return 'move';
         }
         // 不在选择区域里面
         return false;
     },
     /**
-     * 两点求角度
-     * @param {*} px1 
-     * @param {*} py1 
-     * @param {*} px2 
-     * @param {*} py2 
-     */
-    _getAngle(px1, py1, px2, py2) {
-        const x = px2 - px1;
-        const y = py2 - py1;
-        const hypotenuse = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
-        //斜边长度
-        const cos = x / hypotenuse;
-        const radian = Math.acos(cos);
-        const angle = 180 / (Math.PI / radian);
-        return angle;
+     *  判断一个点是否在多边形内部
+     *  @param points 多边形坐标集合
+     *  @param testPoint 测试点坐标
+     *  返回true为真，false为假
+     *  */
+    insidePolygon(points, testPoint) {
+        let x = testPoint[0], y = testPoint[1];
+        let inside = false;
+        for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+            let xi = points[i][0], yi = points[i][1];
+            let xj = points[j][0], yj = points[j][1];
+
+            let intersect = ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+            if (intersect) inside = !inside;
+        }
+        return inside;
     },
     /**
-     * 点选择一定角度之后的坐标
-     * @param {*} x 
-     * @param {*} y 
-     * @param {*} rotate 旋转的角度
+     * 计算旋转后矩形四个顶点的坐标（相对于画布）
+     * @private
      */
-    _getTransform(x, y, rotate) {
-        const angle = (Math.PI / 180) * (rotate);
-        const r = Math.sqrt(Math.pow((x - this.centerX), 2) + Math.pow((y - this.centerY), 2));
-        const a = Math.sin(angle) * r;
-        const b = Math.cos(angle) * r;
-        return {
-            x: this.centerX + b,
-            y: this.centerY + a,
-        };
+    _rotateSquare() {
+        this.square = [
+            this._rotatePoint(this.x, this.y, this.centerX, this.centerY, this.rotate),
+            this._rotatePoint(this.x + this.w, this.y, this.centerX, this.centerY, this.rotate),
+            this._rotatePoint(this.x + this.w, this.y + this.h, this.centerX, this.centerY, this.rotate),
+            this._rotatePoint(this.x, this.y + this.h, this.centerX, this.centerY, this.rotate),
+        ];
     },
     /**
-     * 
+     * 计算旋转后的新坐标（相对于画布）
+     * @param x
+     * @param y
+     * @param centerX
+     * @param centerY
+     * @param degrees
+     * @returns {*[]}
+     * @private
+     */
+    _rotatePoint(x, y, centerX, centerY, degrees) {
+        let newX = (x - centerX) * Math.cos(degrees * Math.PI / 180) - (y - centerY) * Math.sin(degrees * Math.PI / 180) + centerX;
+        let newY = (x - centerX) * Math.sin(degrees * Math.PI / 180) + (y - centerY) * Math.cos(degrees * Math.PI / 180) + centerY;
+        return [newX, newY];
+    },
+    /**
+     *
      * @param {*} px 手指按下去的坐标
      * @param {*} py 手指按下去的坐标
      * @param {*} x 手指移动到的坐标
@@ -182,60 +233,70 @@ dragGraph.prototype = {
         // 获取选择区域的宽度高度
         if (this.type === 'text') {
             this.ctx.setFontSize(this.fontSize);
+            const textWidth = this.ctx.measureText(this.text).width;
+            const textHeight = this.fontSize + 10;
+            this.w = textWidth;
+            this.h = textHeight;
+            // 字体区域中心点不变，左上角位移
+            this.x = this.centerX - textWidth / 2;
+            this.y = this.centerY - textHeight / 2;
+        } else {
+            this.centerX = this.x + this.w / 2;
+            this.centerY = this.y + this.h / 2;
         }
 
-        const centerX = this.type === 'text' ? this.x : this.x + (this.w / 2);
-        const centerY = this.type === 'text' ? this.y : this.y + (this.h / 2);
-
-        const diffXBefore = px - centerX;
-        const diffYBefore = py - centerY;
-        const diffXAfter = x - centerX;
-        const diffYAfter = y - centerY;
+        const diffXBefore = px - this.centerX;
+        const diffYBefore = py - this.centerY;
+        const diffXAfter = x - this.centerX;
+        const diffYAfter = y - this.centerY;
 
         const angleBefore = Math.atan2(diffYBefore, diffXBefore) / Math.PI * 180;
         const angleAfter = Math.atan2(diffYAfter, diffXAfter) / Math.PI * 180;
 
         // 旋转的角度
-        this.rotate = currentGraph.rotate + angleAfter - angleBefore;
+        if (ROTATE_ENABLED) {
+            this.rotate = currentGraph.rotate + angleAfter - angleBefore;
+        }
 
-        const lineA = Math.sqrt(Math.pow((centerX - px), 2) + Math.pow((centerY - py), 2));
-        const lineB = Math.sqrt(Math.pow((centerX - x), 2) + Math.pow((centerY - y), 2));
+        const lineA = Math.sqrt(Math.pow((this.centerX - px), 2) + Math.pow((this.centerY - py), 2));
+        const lineB = Math.sqrt(Math.pow((this.centerX - x), 2) + Math.pow((this.centerY - y), 2));
         if (this.type === 'image') {
-            const w = currentGraph.w + (lineB - lineA);
-            const h = currentGraph.h + (lineB - lineA);
-            this.w = w <= this.MIN_WIDTH ? this.MIN_WIDTH : w;
-            this.h = h <= this.MIN_WIDTH ? this.MIN_WIDTH : h;
+            let resize_rito = lineB / lineA;
+            let new_w = currentGraph.w * resize_rito;
+            let new_h = currentGraph.h * resize_rito;
 
-            if (w > this.MIN_WIDTH && h > this.MIN_WIDTH) {
-                // 放大 或 缩小
-                this.x = currentGraph.x - (lineB - lineA) / 2;
-                this.y = currentGraph.y - (lineB - lineA) / 2;
+            if (currentGraph.w < currentGraph.h && new_w < this.MIN_WIDTH) {
+                new_w = this.MIN_WIDTH;
+                new_h = this.MIN_WIDTH * currentGraph.h / currentGraph.w;
+            } else if (currentGraph.h < currentGraph.w && new_h < this.MIN_WIDTH) {
+                new_h = this.MIN_WIDTH;
+                new_w = this.MIN_WIDTH * currentGraph.w / currentGraph.h;
             }
+
+            this.w = new_w;
+            this.h = new_h;
+            this.x = currentGraph.x - (new_w - currentGraph.w) / 2;
+            this.y = currentGraph.y - (new_h - currentGraph.h) / 2;
+
         } else if (this.type === 'text') {
             const fontSize = currentGraph.fontSize * ((lineB - lineA) / lineA + 1);
             this.fontSize = fontSize <= this.MIN_FONTSIZE ? this.MIN_FONTSIZE : fontSize;
+
+            // 旋转位移后重新计算坐标
+            this.ctx.setFontSize(this.fontSize);
+            const textWidth = this.ctx.measureText(this.text).width;
+            const textHeight = this.fontSize + 10;
+            this.w = textWidth;
+            this.h = textHeight;
+            // 字体区域中心点不变，左上角位移
+            this.x = this.centerX - textWidth / 2;
+            this.y = this.centerY - textHeight / 2;
         }
-    },
-    /**
-     * 画圆角矩形
-     */
-    _drawRadiusRect(x, y, w, h, r) {
-        const br = r / 2;
-        this.ctx.beginPath();
-        this.ctx.moveTo(this.toPx(x + br), this.toPx(y));    // 移动到左上角的点
-        this.ctx.lineTo(this.toPx(x + w - br), this.toPx(y));
-        this.ctx.arcTo(this.toPx(x + w), this.toPx(y), this.toPx(x + w), this.toPx(y + br), this.toPx(br));
-        this.ctx.lineTo(this.toPx(x + w), this.toPx(y + h - br));
-        this.ctx.arcTo(this.toPx(x + w), this.toPx(y + h), this.toPx(x + w - br), this.toPx(y + h), this.toPx(br));
-        this.ctx.lineTo(this.toPx(x + br), this.toPx(y + h));
-        this.ctx.arcTo(this.toPx(x), this.toPx(y + h), this.toPx(x), this.toPx(y + h - br), this.toPx(br));
-        this.ctx.lineTo(this.toPx(x), this.toPx(y + br));
-        this.ctx.arcTo(this.toPx(x), this.toPx(y), this.toPx(x + br), this.toPx(y), this.toPx(br));
     },
     toPx(rpx) {
         return rpx * this.factor;
     },
-}
+};
 Component({
     /**
      * 组件的属性列表
@@ -254,6 +315,10 @@ Component({
             type: String,
             value: '',
         },
+        bgSourceId: {
+            type: String,
+            value: '',
+        },
         width: {
             type: Number,
             value: 750,
@@ -267,9 +332,7 @@ Component({
     /**
      * 组件的初始数据
      */
-    data: {
-
-    },
+    data: {},
 
     attached() {
         const sysInfo = wx.getSystemInfoSync();
@@ -298,6 +361,37 @@ Component({
             }, n), this.ctx, this.factor));
             this.draw();
         },
+        initByArr(newArr) {
+            this.drawArr = [];
+            // 循环插入 drawArr
+            newArr.forEach((item, index) => {
+                switch (item.type) {
+                    case 'bgColor':
+                        this.data.bgImage = '';
+                        this.data.bgSourceId = '';
+                        this.data.bgColor = item.color;
+                        break;
+                    case 'bgImage':
+                        this.data.bgColor = '';
+                        this.data.bgImage = item.url;
+                        if (item.sourceId) {
+                            this.data.bgSourceId = item.sourceId;
+                        }
+                        break;
+                    case 'image':
+                    case 'text':
+                        if (index === newArr.length - 1) {
+                            item.selected = true;
+                        } else {
+                            item.selected = false;
+                        }
+                        this.drawArr.push(new dragGraph(item, this.ctx, this.factor));
+                        break;
+                }
+
+            });
+            this.draw();
+        },
         draw() {
             if (this.data.bgImage !== '') {
                 this.ctx.drawImage(this.data.bgImage, 0, 0, this.toPx(this.data.width), this.toPx(this.data.height));
@@ -318,43 +412,67 @@ Component({
             });
         },
         start(e) {
-            const { x, y } = e.touches[0];
+            const {x, y} = e.touches[0];
             this.tempGraphArr = [];
+            let lastDelIndex = null; // 记录最后一个需要删除的索引
             this.drawArr && this.drawArr.forEach((item, index) => {
-                item.selected = false;
                 const action = item.isInGraph(x, y);
                 if (action) {
+                    item.action = action;
+                    this.tempGraphArr.push(item);
+                    // 保存点击时的坐标
+                    this.currentTouch = {x, y};
                     if (action === 'del') {
-                        this.drawArr.splice(index, 1);
-                        this.ctx.clearRect(0, 0, this.toPx(this.data.width), this.toPx(this.data.height));
-                        this.ctx.draw();
-                    } else if (action === 'transform' || action === 'move') {
-                        item.action = action;
-                        this.tempGraphArr.push(item);
-                        // 保存点击时的坐标
-                        this.currentTouch = { x, y };
-
+                        lastDelIndex = index;// 标记需要删除的元素
                     }
+                } else {
+                    item.action = false;
+                    item.selected = false;
                 }
             });
             // 保存点击时元素的信息
             if (this.tempGraphArr.length > 0) {
-                const lastIndex = this.tempGraphArr.length - 1;
-                this.tempGraphArr[lastIndex].selected = true;
-                this.currentGraph = Object.assign({}, this.tempGraphArr[lastIndex]);
+                for (let i = 0; i < this.tempGraphArr.length; i++) {
+                    let lastIndex = this.tempGraphArr.length - 1;
+                    // 对最后一个元素做操作
+                    if (i === lastIndex) {
+                        // 未选中的元素，不执行删除和缩放操作
+                        if (lastDelIndex !== null && this.tempGraphArr[i].selected) {
+                            if (this.drawArr[lastDelIndex].action === 'del') {
+                                this.drawArr.splice(lastDelIndex, 1);
+                                this.ctx.clearRect(0, 0, this.toPx(this.data.width), this.toPx(this.data.height));
+                            }
+                        } else {
+                            this.tempGraphArr[lastIndex].selected = true;
+                            this.currentGraph = Object.assign({}, this.tempGraphArr[lastIndex]);
+                        }
+                    } else {
+                        // 不是最后一个元素，不需要选中，也不记录状态
+                        this.tempGraphArr[i].action = false;
+                        this.tempGraphArr[i].selected = false;
+                    }
+                }
             }
             this.draw();
         },
         move(e) {
-            const { x, y } = e.touches[0];
+            const {x, y} = e.touches[0];
             if (this.tempGraphArr && this.tempGraphArr.length > 0) {
                 const currentGraph = this.tempGraphArr[this.tempGraphArr.length - 1];
                 if (currentGraph.action === 'move') {
-                    currentGraph.x = this.currentGraph.x + (x - this.currentTouch.x);
-                    currentGraph.y = this.currentGraph.y + (y - this.currentTouch.y);
+                    currentGraph.centerX = this.currentGraph.centerX + (x - this.currentTouch.x);
+                    currentGraph.centerY = this.currentGraph.centerY + (y - this.currentTouch.y);
+                    // 使用中心点坐标计算位移，不使用 x,y 坐标，因为会受旋转影响。
+                    if (currentGraph.type !== 'text') {
+                        currentGraph.x = currentGraph.centerX - this.currentGraph.w / 2;
+                        currentGraph.y = currentGraph.centerY - this.currentGraph.h / 2;
+                    }
                 } else if (currentGraph.action === 'transform') {
                     currentGraph.transform(this.currentTouch.x, this.currentTouch.y, x, y, this.currentGraph);
                 }
+                // 更新4个坐标点（相对于画布的坐标系）
+                currentGraph._rotateSquare();
+
                 this.draw();
             }
         },
@@ -370,10 +488,65 @@ Component({
                 this.draw().then(() => {
                     wx.canvasToTempFilePath({
                         canvasId: 'canvas-label',
-                        success: (res) => { resolve(res.tempFilePath); },
-                        fail: (e) => { reject(e); },
+                        success: (res) => {
+                            resolve(res.tempFilePath);
+                        },
+                        fail: (e) => {
+                            reject(e);
+                        },
                     }, this);
                 });
+            })
+        },
+        exportJson() {
+            return new Promise((resolve, reject) => {
+                let exportArr = this.drawArr.map((item) => {
+                    item.selected = false;
+                    switch (item.type) {
+                        case 'image':
+                            return {
+                                type: 'image',
+                                url: item.fileUrl,
+                                y: item.y,
+                                x: item.x,
+                                w: item.w,
+                                h: item.h,
+                                rotate: item.rotate,
+                                sourceId: item.sourceId,
+                            };
+                            break;
+                        case 'text':
+                            return {
+                                type: 'text',
+                                text: item.text,
+                                color: item.color,
+                                fontSize: item.fontSize,
+                                y: item.y,
+                                x: item.x,
+                                w: item.w,
+                                h: item.h,
+                                rotate: item.rotate,
+                            };
+                            break;
+                    }
+                });
+                if (this.data.bgImage) {
+                    let tmp_img_config = {
+                        type: 'bgImage',
+                        url: this.data.bgImage,
+                    };
+                    if (this.data.bgSourceId) {
+                        tmp_img_config['sourceId'] = this.data.bgSourceId;
+                    }
+                    exportArr.unshift(tmp_img_config);
+                } else if (this.data.bgColor) {
+                    exportArr.unshift({
+                        type: 'bgColor',
+                        color: this.data.bgColor
+                    });
+                }
+
+                resolve(exportArr);
             })
         },
         changColor(color) {
@@ -388,10 +561,24 @@ Component({
             this.data.bgColor = color;
             this.draw();
         },
-        changeBgImage(url) {
+        changeBgImage(newBgImg) {
             this.data.bgColor = '';
-            this.data.bgImage = url;
+            if (typeof newBgImg == 'string') {
+                this.data.bgSourceId = '';
+                this.data.bgImage = newBgImg;
+            } else {
+                this.data.bgSourceId = newBgImg.sourceId;
+                this.data.bgImage = newBgImg.url;
+            }
             this.draw();
+        },
+        clearCanvas() {
+            this.ctx.clearRect(0, 0, this.toPx(this.data.width), this.toPx(this.data.height));
+            this.ctx.draw();
+            this.drawArr = [];
+            this.data.bgColor = '';
+            this.data.bgSourceId = '';
+            this.data.bgImage = '';
         }
     }
-})
+});

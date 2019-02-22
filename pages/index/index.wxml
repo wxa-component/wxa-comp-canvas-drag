@@ -1,8 +1,11 @@
 <canvas-drag id="canvas-drag" graph="{{graph}}" width="700" height="750"></canvas-drag>
-<button bindtap="onAddImage">添加图片</button>
-<button bindtap="onAddTest">添加测试图片</button>
-<button bindtap="onAddText">添加文字</button>
-<button bindtap="onExport">导出图片</button>
-<button bindtap="onChangeColor">改变文字颜色</button>
-<button bindtap="onChangeBgColor">改变背景颜色</button>
-<button bindtap="onChangeBgImage">改变背景照片</button>
+<view class="btn" bindtap="onAddImage">添加图片</view>
+<view class="btn" bindtap="onAddTest">添加测试图片</view>
+<view class="btn" bindtap="onAddText">添加文字</view>
+<view class="btn" bindtap="onExport">导出图片</view>
+<view class="btn" bindtap="onChangeColor">改变文字颜色</view>
+<view class="btn" bindtap="onChangeBgColor">改变背景颜色</view>
+<view class="btn" bindtap="onChangeBgImage">改变背景照片</view>
+<view class="btn" bindtap="onExportJSON">导出模板</view>
+<view class="btn" bindtap="onImport">导入默认模板</view>
+<view class="btn" bindtap="onClearCanvas">清空画布</view>

@@ -53,9 +53,9 @@ yarn add wxa-comp-canvas-drag --production
 
 ## 组件参数解释
 
-| 字段    | 类型   | 必填          | 描述                         |
+| 字段    | 类型   | 必填          | 描述    |
 | ------- | ------ | ------------- | ---------------------------- |
-| graph   | Object | 否            | 看下文                       |
+| graph   | Object | 否            | 看下文  |
 | bgColor | String | 否            | 画板背景颜色                 |
 | bgImage | String | 否            | 画板背景图片地址（本地地址） |
 | width   | Number | 否（默认750） | 画板宽度（单位rpx）          |
@@ -63,24 +63,29 @@ yarn add wxa-comp-canvas-drag --production
 
 ### graph 字段
 
-| 字段 | 类型                        | 必填               | 描述                                      |
-| ---- | --------------------------- | ------------------ | ----------------------------------------- |
-| type | String（'text'或者'image'） | 是                 | 加入画板的元素类型，有text和image两种类型 |
-| w    | Number                      | type=image时，必填 | 图片宽度                                  |
-| h    | Number                      | type=image时，必填 | 图片高度                                  |
-| url  | String                      | type=image时，必填 | 图片地址（本地地址）                      |
-| text | String                      | type=text时，必填  | 文本内容                                  |
+| 字段 | 类型 | 必填 | 描述 |
+| ---- | ---- | ---- | ---- |
+| type | String（'text'或者'image'） | 是 | 加入画板的元素类型，有text和image两种类型 |
+| w    | Number | type=image时，必填 | 图片宽度             |
+| h    | Number | type=image时，必填 | 图片高度             |
+| url  | String | type=image时，必填 | 图片地址（本地地址） |
+| sourceId | String | type=image时可用，选填 | 图片信息（导出模板用） |
+| text | String | type=text时，必填  | 文本内容             |
 
 ## 对外暴露接口
 
 组件通过canvas-drag.js对外暴露了以下几个接口
 
-| 接口名         | 入参                             | 返回                              | 描述                   |
-| -------------- | -------------------------------- | --------------------------------- | ---------------------- |
-| export         | 无                               | Promise对象，成功回调返回图片地址 | 导出画板生成的图片地址 |
-| changFontColor | color（改变的颜色值）            | 无                                | 改变选择文本颜色       |
-| changeBgColor  | color（改变的颜色值）            | 无                                | 改变画板背景颜色       |
-| changeBgImage  | imageUrl（图片地址（本地地址）） | 无                                | 改变画板背景图片       |
+| 接口名 | 入参 | 返回 | 描述 |
+| ---- | ---- | ---- | ---- |
+| export | 无 | Promise对象，成功回调返回图片地址 | 导出画板生成的图片地址 |
+| exportJSON | 无 | Promise对象，成功回调返当前画板配置 | 导出画板布局数据 |
+| clearCanvas | 无 | 无 | 清空画布 |
+| initByArr | exportJSON导出的数据 | 无 | 用配置文件一次渲染多个元素 |
+| changFontColor | color（改变的颜色值） | 无 | 改变选择文本颜色 |
+| changeBgColor  | color（改变的颜色值） | 无 | 改变画板背景颜色 |
+| changeBgImage  | imageUrl（图片地址（本地地址）） | 无 | 改变画板背景图片 |
+| changeBgImage  | {url:"图片URL",sourceId:"图片信息"} | 无 | 改变画板背景图片 |
 
 ## 问题反馈
 
