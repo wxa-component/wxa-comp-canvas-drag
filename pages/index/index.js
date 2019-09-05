@@ -114,4 +114,8 @@ Page({
         _this.setData({canvasBg:null});
         CanvasDrag.clearCanvas();
     },
+
+    onUndo:function(event){
+        CanvasDrag.undo();
+    }
 });

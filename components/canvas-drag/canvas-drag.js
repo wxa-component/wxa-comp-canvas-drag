@@ -80,4 +80,12 @@ CanvasDrag.clearCanvas = () => {
   }
 };
 
+CanvasDrag.undo = () => {
+    const canvasDrag = CanvasDrag();
+    if (!canvasDrag) {
+        console.error('请设置组件的id="canvas-drag"!!!');
+    } else {
+        return CanvasDrag().undo();
+    }
+};
 export default CanvasDrag;
