@@ -60,6 +60,7 @@ yarn add wxa-comp-canvas-drag --production
 | bgImage | String | 否            | 画板背景图片地址（本地地址） |
 | width   | Number | 否（默认750） | 画板宽度（单位rpx）          |
 | height  | Number | 否（默认750） | 画板高度（单位rpx）          |
+| enableUndo  | Boolean | 否（默认false） | 是否启用后退 |
 
 ### graph 字段
 
@@ -86,6 +87,7 @@ yarn add wxa-comp-canvas-drag --production
 | changeBgColor  | color（改变的颜色值） | 无 | 改变画板背景颜色 |
 | changeBgImage  | imageUrl（图片地址（本地地址）） | 无 | 改变画板背景图片 |
 | changeBgImage  | {url:"图片URL",sourceId:"图片信息"} | 无 | 改变画板背景图片 |
+| undo  | 无 | 无 | 回到上一次的状态 |
 
 ## 问题反馈
 

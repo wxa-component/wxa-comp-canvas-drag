@@ -3,6 +3,7 @@ const DELETE_ICON = './icon/close.png'; // 删除按钮
 const DRAG_ICON = './icon/scale.png'; // 缩放按钮
 const STROKE_COLOR = 'red';
 const ROTATE_ENABLED = true;
+let isMove = false; // 标识触摸后是否有移动，用来判断是否需要增加操作历史
 
 const DEBUG_MODE = false; // 打开调试后会渲染操作区域边框（无背景时有效）
 const dragGraph = function ({x = 30, y = 30, w, h, type, text, fontSize = 20, color = 'red', url = null, rotate = 0, sourceId = null, selected = true}, canvas, factor) {
@@ -327,12 +328,18 @@ Component({
             type: Number,
             value: 750,
         },
+        enableUndo: {
+            type: Boolean,
+            value: false,
+        }
     },
 
     /**
      * 组件的初始数据
      */
-    data: {},
+    data: {
+      history:[],
+    },
 
     attached() {
         const sysInfo = wx.getSystemInfoSync();
@@ -353,6 +360,39 @@ Component({
         toPx(rpx) {
             return rpx * this.factor;
         },
+        initBg(){
+            this.data.bgColor = '';
+            this.data.bgSourceId = '';
+            this.data.bgImage = '';
+        },
+        initHistory(){
+            this.data.history = [];
+        },
+        recordHistory(){
+            if (!this.data.enableUndo){
+                return;
+            }
+            this.exportJson()
+            .then((imgArr) => {
+                this.data.history.push(JSON.stringify(imgArr));
+            })
+            .catch((e) => {
+                console.error(e);
+            });
+        },
+        undo() {
+            if (!this.data.enableUndo) {
+                console.log(`后退功能未启用，请设置enableUndo="{{true}}"`);
+                return;
+            }
+            if(this.data.history.length > 1){
+                this.data.history.pop()
+                let newConfigObj = this.data.history[this.data.history.length - 1];
+                this.initByArr(JSON.parse(newConfigObj));
+            }else{
+                console.log('已是第一步，不能回退');
+            }
+        },
         onGraphChange(n, o) {
             if (JSON.stringify(n) === '{}') return;
             this.drawArr.push(new dragGraph(Object.assign({
@@ -360,9 +400,12 @@ Component({
                 y: 30,
             }, n), this.ctx, this.factor));
             this.draw();
+            // 参数有变化时记录历史
+            this.recordHistory();
         },
         initByArr(newArr) {
-            this.drawArr = [];
+            this.drawArr = []; // 重置绘画元素
+            this.initBg(); // 重置绘画背景
             // 循环插入 drawArr
             newArr.forEach((item, index) => {
                 switch (item.type) {
@@ -412,6 +455,7 @@ Component({
             });
         },
         start(e) {
+            isMove = false; // 重置移动标识
             const {x, y} = e.touches[0];
             this.tempGraphArr = [];
             let lastDelIndex = null; // 记录最后一个需要删除的索引
@@ -458,6 +502,7 @@ Component({
         move(e) {
             const {x, y} = e.touches[0];
             if (this.tempGraphArr && this.tempGraphArr.length > 0) {
+                isMove = true; // 有选中元素，并且有移动时，设置移动标识
                 const currentGraph = this.tempGraphArr[this.tempGraphArr.length - 1];
                 if (currentGraph.action === 'move') {
                     currentGraph.centerX = this.currentGraph.centerX + (x - this.currentTouch.x);
@@ -478,6 +523,11 @@ Component({
         },
         end(e) {
             this.tempGraphArr = [];
+            if(isMove){
+                isMove = false; // 重置移动标识
+                // 用户操作结束时记录历史
+                this.recordHistory();
+            }
         },
         export() {
             return new Promise((resolve, reject) => {
@@ -555,11 +605,15 @@ Component({
                 selected[0].color = color;
             }
             this.draw();
+            // 改变文字颜色时记录历史
+            this.recordHistory();
         },
         changeBgColor(color) {
             this.data.bgImage = '';
             this.data.bgColor = color;
             this.draw();
+            // 改变背景颜色时记录历史
+            this.recordHistory();
         },
         changeBgImage(newBgImg) {
             this.data.bgColor = '';
@@ -571,14 +625,15 @@ Component({
                 this.data.bgImage = newBgImg.url;
             }
             this.draw();
+            // 改变背景图片时记录历史
+            this.recordHistory();
         },
         clearCanvas() {
             this.ctx.clearRect(0, 0, this.toPx(this.data.width), this.toPx(this.data.height));
             this.ctx.draw();
             this.drawArr = [];
-            this.data.bgColor = '';
-            this.data.bgSourceId = '';
-            this.data.bgImage = '';
+            this.initBg(); // 重置绘画背景
+            this.initHistory(); // 清空历史记录
         }
     }
 });
